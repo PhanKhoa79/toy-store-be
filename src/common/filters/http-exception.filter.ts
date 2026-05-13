@@ -1,6 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 import type { Response } from 'express';
-import type { ErrorCode } from '../contracts/errors';
+import type { ErrorCode } from '@/common/contracts';
 
 type ErrorResponseBody = {
   error?: {
