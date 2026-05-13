@@ -1,6 +1,8 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import express from 'express';
+import { join } from 'path';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
@@ -17,6 +19,7 @@ async function bootstrap() {
   app.setGlobalPrefix(apiPrefix);
   app.use(helmet());
   app.use(cookieParser());
+  app.use('/uploads', express.static(join(process.cwd(), config.get<string>('UPLOAD_DIR', 'uploads'))));
   app.enableCors({
     origin: frontendUrl,
     credentials: true

@@ -5,6 +5,8 @@ export type PaginationMeta = {
   pageSize: number;
   total: number;
   totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
 };
 
 export type PaginationQuery = {
@@ -32,6 +34,11 @@ export type ApiFailure = {
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiFailure;
 
-export type PaginatedResponse<T> = ApiSuccess<T[]> & {
+export type PaginatedResponse<T> = {
+  data: T[];
+  meta: PaginationMeta;
+};
+
+export type ApiPaginatedResponse<T> = ApiSuccess<T[]> & {
   meta: PaginationMeta;
 };

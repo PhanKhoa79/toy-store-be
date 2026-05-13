@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 import type { Response } from 'express';
 import type { ErrorCode } from '@/common/contracts';
+import { defaultErrorCode, defaultErrorMessage } from '@/common/utils/api-error.util';
 
 type ErrorResponseBody = {
   error?: {
@@ -41,35 +42,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
       const source = typedBody.error ?? typedBody;
       const message = Array.isArray(source.message) ? source.message.join(', ') : source.message;
       return {
-        code: source.code ?? this.defaultCode(status),
-        message: message ?? this.defaultMessage(status),
+        code: source.code ?? defaultErrorCode(status),
+        message: message ?? defaultErrorMessage(status),
         ...(source.details ? { details: source.details } : {})
       };
     }
 
     if (typeof body === 'string') {
       return {
-        code: this.defaultCode(status),
+        code: defaultErrorCode(status),
         message: body
       };
     }
 
     return {
-      code: this.defaultCode(status),
-      message: this.defaultMessage(status)
+      code: defaultErrorCode(status),
+      message: defaultErrorMessage(status)
     };
-  }
-
-  private defaultCode(status: number): ErrorCode {
-    if (status === HttpStatus.BAD_REQUEST) return 'COMMON_VALIDATION_ERROR';
-    if (status === HttpStatus.UNAUTHORIZED) return 'COMMON_UNAUTHORIZED';
-    if (status === HttpStatus.FORBIDDEN) return 'COMMON_FORBIDDEN';
-    if (status === HttpStatus.NOT_FOUND) return 'RESOURCE_NOT_FOUND';
-    return 'INTERNAL_SERVER_ERROR';
-  }
-
-  private defaultMessage(status: number) {
-    if (status === HttpStatus.INTERNAL_SERVER_ERROR) return 'Internal server error';
-    return 'Request failed';
   }
 }

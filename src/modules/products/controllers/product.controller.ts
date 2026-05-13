@@ -1,8 +1,10 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Public } from '@/common/decorators/public.decorator';
 import { ListProductsQueryDto } from '@/modules/products/dto/list-products.query';
 import { ProductService } from '@/modules/products/services/product.service';
 
+@Public()
 @ApiTags('products')
 @Controller('products')
 export class ProductController {
@@ -23,3 +25,4 @@ export class ProductController {
     return this.productService.getProductBySlug(slug);
   }
 }
+
