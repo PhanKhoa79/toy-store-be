@@ -1,0 +1,9 @@
+export type UserRole = 'guest' | 'customer' | 'staff' | 'admin';
+export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipping' | 'delivered' | 'cancelled';
+export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
+export type ReviewStatus = 'pending' | 'approved' | 'rejected' | 'hidden';
+export type ChatStatus = 'pending' | 'open' | 'closed';
+export type EntityStatus = 'active' | 'inactive';
+export type BlogStatus = 'draft' | 'published' | 'archived';
+export type ProductGender = 'boy' | 'girl' | 'unisex';
+export type PaymentMethod = 'vnpay';
