@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import bcrypt from 'bcryptjs';
+import * as argon2 from 'argon2';
 import { ApiException } from '@/common/exceptions/api.exception';
 import type { AuthSession, CurrentUser } from '@/common/contracts';
 import { LoginDto } from '@/modules/auth/dto/login.dto';
@@ -23,11 +23,19 @@ export class AuthService {
     private readonly configService: ConfigService
   ) {}
 
+  private validatePasswordStrength(password: string) {
+    const strong = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+    if (!strong.test(password)) {
+      throw new ApiException('AUTH_PASSWORD_TOO_WEAK', 'Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.', HttpStatus.BAD_REQUEST);
+    }
+  }
+
   async register(dto: RegisterDto): Promise<AuthSession & { tokens: AuthTokens }> {
     const existingUser = await this.authRepository.findUserByEmail(dto.email);
     if (existingUser) throw new ApiException('AUTH_EMAIL_ALREADY_EXISTS', 'Email đã được sử dụng.', HttpStatus.CONFLICT);
+    this.validatePasswordStrength(dto.password);
 
-    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const passwordHash = await argon2.hash(dto.password);
     const user = await this.authRepository.createCustomer({
       email: dto.email,
       passwordHash,
@@ -42,7 +50,7 @@ export class AuthService {
     const user = await this.authRepository.findUserByEmail(dto.email);
     if (!user) throw new ApiException('AUTH_INVALID_CREDENTIALS', 'Email hoặc mật khẩu không đúng.', HttpStatus.UNAUTHORIZED);
 
-    const passwordValid = await bcrypt.compare(dto.password, user.passwordHash);
+    const passwordValid = await argon2.verify(user.passwordHash, dto.password);
     if (!passwordValid) throw new ApiException('AUTH_INVALID_CREDENTIALS', 'Email hoặc mật khẩu không đúng.', HttpStatus.UNAUTHORIZED);
     if (!user.isActive || user.lockedAt) throw new ApiException('AUTH_ACCOUNT_LOCKED', 'Tài khoản đã bị khóa hoặc ngừng hoạt động.', HttpStatus.FORBIDDEN);
 

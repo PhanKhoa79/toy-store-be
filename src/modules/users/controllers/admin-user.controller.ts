@@ -1,7 +1,9 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiCookieAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiStandardErrors } from '@/common/decorators/api-standard-response.decorator';
+import { CurrentUserDecorator } from '@/common/decorators/current-user.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
+import type { CurrentUser } from '@/common/contracts';
 import { AdminUserListQueryDto, CreateAdminUserDto, UpdateAdminUserDto, UpdateUserPermissionsDto } from '@/modules/users/dto/admin-user.dto';
 import { UserService } from '@/modules/users/services/user.service';
 
@@ -43,5 +45,5 @@ export class AdminUserController {
   @ApiParam({ name: 'id' })
   @ApiOkResponse({ description: 'Updated user permissions' })
   @ApiStandardErrors()
-  updatePermissions(@Param('id') id: string, @Body() dto: UpdateUserPermissionsDto) { return this.userService.updatePermissions(id, dto); }
+  updatePermissions(@Param('id') id: string, @Body() dto: UpdateUserPermissionsDto, @CurrentUserDecorator() user: CurrentUser) { return this.userService.updatePermissions(id, dto, user.id); }
 }

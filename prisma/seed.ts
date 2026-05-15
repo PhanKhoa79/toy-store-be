@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import * as argon2 from 'argon2';
 
 const prisma = new PrismaClient();
 
@@ -52,7 +52,7 @@ async function assignPermissions(userId: string, allowed: readonly (readonly [st
 }
 
 async function main() {
-  const passwordHash = await bcrypt.hash('Password123!', 10);
+  const passwordHash = await argon2.hash('Password123!');
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@toyshop.local' },

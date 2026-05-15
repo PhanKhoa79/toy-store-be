@@ -18,6 +18,7 @@ export class CustomerAccountService {
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDto) {
+    if ('email' in dto) throw new ApiException('PROFILE_EMAIL_UPDATE_NOT_ALLOWED', 'Không được phép cập nhật email.', HttpStatus.BAD_REQUEST);
     const user = await this.repository.updateProfile(userId, dto);
     return { id: user.id, email: user.email, fullName: user.fullName, phone: user.phone, role: user.role, isActive: user.isActive };
   }

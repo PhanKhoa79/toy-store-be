@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import bcrypt from 'bcryptjs';
+import * as argon2 from 'argon2';
 import { Prisma } from '@prisma/client';
 import { ApiException } from '@/common/exceptions/api.exception';
 import { createPaginationMeta } from '@/common/utils/pagination.util';
@@ -23,7 +23,7 @@ export class UserService {
 
   async createUser(dto: CreateAdminUserDto) {
     if (await this.userRepository.findByEmail(dto.email)) throw new ApiException('USER_EMAIL_ALREADY_EXISTS', 'Email đã được sử dụng.', HttpStatus.CONFLICT);
-    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const passwordHash = await argon2.hash(dto.password);
     return this.userRepository.create({ email: dto.email, passwordHash, fullName: dto.fullName, phone: dto.phone, role: dto.role, isActive: dto.isActive ?? true });
   }
 
@@ -38,7 +38,7 @@ export class UserService {
     if (dto.email && dto.email !== user.email && (await this.userRepository.findByEmail(dto.email))) throw new ApiException('USER_EMAIL_ALREADY_EXISTS', 'Email đã được sử dụng.', HttpStatus.CONFLICT);
     await this.ensureNotLastAdmin(id, dto);
     const data: Prisma.UserUpdateInput = { ...dto };
-    if (dto.password) data.passwordHash = await bcrypt.hash(dto.password, 10);
+    if (dto.password) data.passwordHash = await argon2.hash(dto.password);
     delete (data as { password?: string }).password;
     return this.userRepository.update(id, data);
   }
@@ -47,7 +47,8 @@ export class UserService {
     return this.userRepository.listPermissions();
   }
 
-  async updatePermissions(id: string, dto: UpdateUserPermissionsDto) {
+  async updatePermissions(id: string, dto: UpdateUserPermissionsDto, actorId: string) {
+    if (id === actorId) throw new ApiException('USER_CANNOT_MODIFY_SELF_PERMISSION', 'Không được phép thay đổi quyền của chính mình.', HttpStatus.FORBIDDEN);
     const user = await this.getUser(id);
     if (user.role === 'admin') return user;
     return this.userRepository.updatePermissions(id, dto.permissionIds);

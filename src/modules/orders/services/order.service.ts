@@ -45,9 +45,25 @@ export class OrderService {
 
   async updateAdminOrderStatus(id: string, dto: UpdateOrderStatusDto) {
     const order = await this.getAdminOrder(id);
-    if (['delivered', 'cancelled'].includes(order.orderStatus) && order.orderStatus !== dto.orderStatus) {
-      throw new ApiException('ORDER_INVALID_STATUS_TRANSITION', 'Trạng thái đơn hàng không hợp lệ.', HttpStatus.BAD_REQUEST);
+    this.validateStatusTransition(order.orderStatus, dto.orderStatus);
+    if (dto.orderStatus === 'cancelled' && !dto.cancelledReason) {
+      throw new ApiException('COMMON_VALIDATION_ERROR', 'Lý do hủy đơn hàng là bắt buộc.', HttpStatus.BAD_REQUEST);
     }
     return this.orderRepository.update(id, { orderStatus: dto.orderStatus, ...(dto.orderStatus === 'cancelled' ? { cancelledReason: dto.cancelledReason } : {}) });
+  }
+
+  private validateStatusTransition(current: string, next: string) {
+    if (current === next) return;
+    const allowed: Record<string, string[]> = {
+      pending: ['confirmed', 'cancelled'],
+      confirmed: ['processing', 'cancelled'],
+      processing: ['shipping', 'cancelled'],
+      shipping: ['delivered', 'cancelled'],
+      delivered: [],
+      cancelled: []
+    };
+    if (!allowed[current]?.includes(next)) {
+      throw new ApiException('ORDER_INVALID_STATUS_TRANSITION', 'Trạng thái đơn hàng không hợp lệ.', HttpStatus.BAD_REQUEST);
+    }
   }
 }

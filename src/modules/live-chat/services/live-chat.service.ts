@@ -16,7 +16,7 @@ export class LiveChatService {
       guestName: user ? user.fullName : dto.guestName,
       guestEmail: user ? user.email : dto.guestEmail,
       subject: dto.subject,
-      status: 'open',
+      status: 'pending',
       lastMessageAt: new Date(),
       messages: { create: { senderId: user?.id, senderRole: user?.role ?? 'guest', message: dto.message } }
     });
